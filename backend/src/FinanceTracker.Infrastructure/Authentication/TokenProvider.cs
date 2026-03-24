@@ -3,20 +3,19 @@ using System.Security.Claims;
 using System.Text;
 using FinanceTracker.Application.Abstractions.Authentication;
 using FinanceTracker.Domain.Users;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FinanceTracker.Infrastructure.Authentication;
 
-internal sealed class TokenProvider(IConfiguration configuration) : ITokenProvider
+internal sealed class TokenProvider(IOptions<JwtOptions> jwtOptions) : ITokenProvider
 {
+    private readonly JwtOptions _options = jwtOptions.Value;
+
     public string GenerateToken(User user)
     {
-        string secretKey = configuration["Jwt:Secret"]!;
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        int expirationInMinutes = int.Parse(configuration["Jwt:ExpirationInMinutes"]!, System.Globalization.CultureInfo.InvariantCulture);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -25,10 +24,10 @@ internal sealed class TokenProvider(IConfiguration configuration) : ITokenProvid
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
             ]),
-            Expires = DateTime.UtcNow.AddMinutes(expirationInMinutes),
+            Expires = DateTime.UtcNow.AddMinutes(_options.ExpirationInMinutes),
             SigningCredentials = credentials,
-            Issuer = configuration["Jwt:Issuer"],
-            Audience = configuration["Jwt:Audience"]
+            Issuer = _options.Issuer,
+            Audience = _options.Audience
         };
 
         var handler = new JwtSecurityTokenHandler();

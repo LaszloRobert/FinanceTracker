@@ -1,11 +1,9 @@
 using System.Text;
 using FinanceTracker.Application.Abstractions.Authentication;
 using FinanceTracker.Application.Abstractions.Data;
-using FinanceTracker.Application.Abstractions.Time;
 using FinanceTracker.Infrastructure.Authentication;
 using FinanceTracker.Infrastructure.Database;
 using FinanceTracker.Infrastructure.DomainEvents;
-using FinanceTracker.Infrastructure.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +19,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDatabase(configuration);
-        services.AddAuthentication(configuration);
+        services.AddJwtAuthentication(configuration);
         services.AddServices();
 
         return services;
@@ -44,24 +42,35 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddAuthentication(
+    private static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddOptions<JwtOptions>()
+            .BindConfiguration(JwtOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        JwtOptions jwtOptions = configuration
+            .GetSection(JwtOptions.SectionName)
+            .Get<JwtOptions>()!;
+
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    ClockSkew = TimeSpan.FromSeconds(30),
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!))
+                        Encoding.UTF8.GetBytes(jwtOptions.Secret))
                 };
             });
 
@@ -74,10 +83,10 @@ public static class DependencyInjection
 
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
-        services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+        services.AddSingleton(TimeProvider.System);
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
         services.AddScoped<ITokenProvider, TokenProvider>();
-        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IUserContext, UserContext>();
 
         return services;

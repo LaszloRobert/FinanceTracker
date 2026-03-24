@@ -1,4 +1,7 @@
+using FinanceTracker.Domain.Accounts;
+using FinanceTracker.Domain.Categories;
 using FinanceTracker.Domain.Transactions;
+using FinanceTracker.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -43,11 +46,28 @@ internal sealed class TransactionConfiguration : IEntityTypeConfiguration<Transa
             .HasMaxLength(16)
             .IsRequired();
 
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(t => t.AccountId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Category>()
+            .WithMany()
+            .HasForeignKey(t => t.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(t => t.UserId);
         builder.HasIndex(t => t.AccountId);
         builder.HasIndex(t => t.BookingDate);
+        builder.HasIndex(t => t.ValueDate);
         builder.HasIndex(t => t.CategoryId);
 
+        // Deduplication indexes — column names use snake_case from UseSnakeCaseNamingConvention()
         builder.HasIndex(t => new { t.AccountId, t.ExternalId })
             .IsUnique()
             .HasFilter("external_id IS NOT NULL");

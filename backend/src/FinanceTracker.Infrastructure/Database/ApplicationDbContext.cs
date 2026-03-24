@@ -34,24 +34,32 @@ public sealed class ApplicationDbContext(
     {
         int result = await base.SaveChangesAsync(cancellationToken);
 
-        await PublishDomainEventsAsync();
+        await PublishDomainEventsAsync(cancellationToken);
 
         return result;
     }
 
-    private async Task PublishDomainEventsAsync()
+    private async Task PublishDomainEventsAsync(CancellationToken cancellationToken)
     {
-        var domainEvents = ChangeTracker
-            .Entries<SharedKernel.Entity>()
-            .Select(entry => entry.Entity)
-            .SelectMany(entity =>
-            {
-                var events = entity.DomainEvents.ToList();
-                entity.ClearDomainEvents();
-                return events;
-            })
-            .ToList();
+        while (true)
+        {
+            var domainEvents = ChangeTracker
+                .Entries<SharedKernel.Entity>()
+                .Select(entry => entry.Entity)
+                .SelectMany(entity =>
+                {
+                    var events = entity.DomainEvents.ToList();
+                    entity.ClearDomainEvents();
+                    return events;
+                })
+                .ToList();
 
-        await domainEventsDispatcher.DispatchAsync(domainEvents);
+            if (domainEvents.Count == 0)
+            {
+                break;
+            }
+
+            await domainEventsDispatcher.DispatchAsync(domainEvents, cancellationToken);
+        }
     }
 }

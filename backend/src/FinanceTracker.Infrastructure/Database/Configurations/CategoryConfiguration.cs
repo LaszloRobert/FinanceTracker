@@ -1,4 +1,5 @@
 using FinanceTracker.Domain.Categories;
+using FinanceTracker.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,6 +20,11 @@ internal sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
 
         builder.Property(c => c.Color)
             .HasMaxLength(16);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(c => c.UserId);
 

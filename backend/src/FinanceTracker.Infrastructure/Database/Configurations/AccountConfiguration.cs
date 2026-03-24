@@ -1,4 +1,6 @@
 using FinanceTracker.Domain.Accounts;
+using FinanceTracker.Domain.BankConnections;
+using FinanceTracker.Domain.Users;
 using FinanceTracker.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -34,12 +36,20 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.OwnsMany<AccountBalance>("_balances", balance =>
         {
             balance.ToJson("balances");
-
             balance.OwnsOne(b => b.Amount);
         });
 
-        builder.HasIndex(a => a.UserId);
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<BankConnection>()
+            .WithMany()
+            .HasForeignKey(a => a.BankConnectionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => a.UserId);
         builder.HasIndex(a => a.BankConnectionId);
 
         builder.HasIndex(a => a.ExternalId)

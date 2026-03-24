@@ -1,4 +1,5 @@
 using FinanceTracker.Domain.BankConnections;
+using FinanceTracker.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -29,6 +30,11 @@ internal sealed class BankConnectionConfiguration : IEntityTypeConfiguration<Ban
             .HasConversion<string>()
             .HasMaxLength(32)
             .IsRequired();
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(bc => bc.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(bc => bc.UserId);
 
