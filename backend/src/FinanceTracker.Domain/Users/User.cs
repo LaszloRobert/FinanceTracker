@@ -11,7 +11,7 @@ public sealed class User : Entity
 
     private User() { }
 
-    public static User Create(string email, string firstName, string lastName, string passwordHash, DateTime now)
+    public static User Create(string email, string firstName, string lastName, string passwordHash, DateTimeOffset now)
     {
         var user = new User
         {

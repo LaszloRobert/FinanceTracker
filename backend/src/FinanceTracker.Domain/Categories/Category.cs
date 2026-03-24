@@ -20,7 +20,7 @@ public sealed class Category : Entity
         string? color,
         Guid? parentCategoryId,
         bool isDefault,
-        DateTime now)
+        DateTimeOffset now)
     {
         return new Category
         {
@@ -35,12 +35,12 @@ public sealed class Category : Entity
         };
     }
 
-    public static Category CreateDefault(string name, string? icon, string? color, DateTime now)
+    public static Category CreateDefault(string name, string? icon, string? color, DateTimeOffset now)
     {
         return Create(Guid.Empty, name, icon, color, null, true, now);
     }
 
-    public void Update(string name, string? icon, string? color, Guid? parentCategoryId, DateTime now)
+    public void Update(string name, string? icon, string? color, Guid? parentCategoryId, DateTimeOffset now)
     {
         Name = name;
         Icon = icon;

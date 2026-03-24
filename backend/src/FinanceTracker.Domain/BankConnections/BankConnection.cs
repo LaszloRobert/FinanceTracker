@@ -10,12 +10,12 @@ public sealed class BankConnection : Entity
     public string? InstitutionLogo { get; private set; }
     public string RequisitionId { get; private set; } = default!;
     public BankConnectionStatus Status { get; private set; }
-    public DateTime LinkedAt { get; private set; }
-    public DateTime ExpiresAt { get; private set; }
-    public DateTime? LastConsentRenewedAt { get; private set; }
+    public DateTimeOffset LinkedAt { get; private set; }
+    public DateTimeOffset ExpiresAt { get; private set; }
+    public DateTimeOffset? LastConsentRenewedAt { get; private set; }
     public int AccessValidForDays { get; private set; }
     public bool IsDeleted { get; private set; }
-    public DateTime? DeletedAt { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
 
     private BankConnection() { }
 
@@ -26,7 +26,7 @@ public sealed class BankConnection : Entity
         string? institutionLogo,
         string requisitionId,
         int accessValidForDays,
-        DateTime now)
+        DateTimeOffset now)
     {
         var connection = new BankConnection
         {
@@ -48,7 +48,7 @@ public sealed class BankConnection : Entity
         return connection;
     }
 
-    public void MarkExpired(DateTime now)
+    public void MarkExpired(DateTimeOffset now)
     {
         if (Status == BankConnectionStatus.Expired)
         {
@@ -60,14 +60,14 @@ public sealed class BankConnection : Entity
         Raise(new BankConnectionExpiredDomainEvent(Id));
     }
 
-    public void MarkError(DateTime now)
+    public void MarkError(DateTimeOffset now)
     {
         Status = BankConnectionStatus.Error;
         UpdatedAt = now;
         Raise(new BankConnectionErrorDomainEvent(Id));
     }
 
-    public void RenewConsent(string newRequisitionId, DateTime now)
+    public void RenewConsent(string newRequisitionId, DateTimeOffset now)
     {
         RequisitionId = newRequisitionId;
         Status = BankConnectionStatus.Linked;
@@ -76,13 +76,13 @@ public sealed class BankConnection : Entity
         UpdatedAt = now;
     }
 
-    public void Revoke(DateTime now)
+    public void Revoke(DateTimeOffset now)
     {
         Status = BankConnectionStatus.Revoked;
         UpdatedAt = now;
     }
 
-    public void SoftDelete(DateTime now)
+    public void SoftDelete(DateTimeOffset now)
     {
         IsDeleted = true;
         DeletedAt = now;

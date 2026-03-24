@@ -13,9 +13,9 @@ public sealed class Account : Entity
     public string? OwnerName { get; private set; }
     public string? DisplayName { get; private set; }
     public string? Product { get; private set; }
-    public DateTime? LastSyncedAt { get; private set; }
+    public DateTimeOffset? LastSyncedAt { get; private set; }
     public bool IsDeleted { get; private set; }
-    public DateTime? DeletedAt { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
 
     private readonly List<AccountBalance> _balances = [];
     public IReadOnlyList<AccountBalance> Balances => _balances.AsReadOnly();
@@ -30,7 +30,7 @@ public sealed class Account : Entity
         string? iban,
         string? ownerName,
         string? product,
-        DateTime now)
+        DateTimeOffset now)
     {
         return new Account
         {
@@ -46,26 +46,26 @@ public sealed class Account : Entity
         };
     }
 
-    public void UpdateDisplayName(string displayName, DateTime now)
+    public void UpdateDisplayName(string displayName, DateTimeOffset now)
     {
         DisplayName = displayName;
         UpdatedAt = now;
     }
 
-    public void UpdateBalances(List<AccountBalance> balances, DateTime now)
+    public void UpdateBalances(List<AccountBalance> balances, DateTimeOffset now)
     {
         _balances.Clear();
         _balances.AddRange(balances);
         UpdatedAt = now;
     }
 
-    public void MarkSynced(DateTime now)
+    public void MarkSynced(DateTimeOffset now)
     {
         LastSyncedAt = now;
         UpdatedAt = now;
     }
 
-    public void SoftDelete(DateTime now)
+    public void SoftDelete(DateTimeOffset now)
     {
         IsDeleted = true;
         DeletedAt = now;

@@ -60,7 +60,7 @@ public sealed class Transaction : Entity
         string? additionalInfo,
         string? merchantCategoryCode,
         string? bankTransactionCode,
-        DateTime now)
+        DateTimeOffset now)
     {
         return new Transaction
         {
@@ -85,25 +85,25 @@ public sealed class Transaction : Entity
         };
     }
 
-    public void Categorize(Guid categoryId, DateTime now)
+    public void Categorize(Guid categoryId, DateTimeOffset now)
     {
         CategoryId = categoryId;
         UpdatedAt = now;
     }
 
-    public void RemoveCategory(DateTime now)
+    public void RemoveCategory(DateTimeOffset now)
     {
         CategoryId = null;
         UpdatedAt = now;
     }
 
-    public void MarkReplacedBy(Guid bookedTransactionId, DateTime now)
+    public void MarkReplacedBy(Guid bookedTransactionId, DateTimeOffset now)
     {
         ReplacedByTransactionId = bookedTransactionId;
         UpdatedAt = now;
     }
 
-    public void PromoteToBooked(string externalId, DateOnly bookingDate, DateTime now)
+    public void PromoteToBooked(string externalId, DateOnly bookingDate, DateTimeOffset now)
     {
         Status = TransactionStatus.Booked;
         ExternalId = externalId;
