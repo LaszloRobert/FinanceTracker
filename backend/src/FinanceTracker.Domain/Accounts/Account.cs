@@ -1,0 +1,74 @@
+using FinanceTracker.Domain.ValueObjects;
+using FinanceTracker.SharedKernel;
+
+namespace FinanceTracker.Domain.Accounts;
+
+public sealed class Account : Entity
+{
+    public Guid UserId { get; private set; }
+    public Guid BankConnectionId { get; private set; }
+    public string ExternalId { get; private set; } = default!;
+    public string? Iban { get; private set; }
+    public string Currency { get; private set; } = default!;
+    public string? OwnerName { get; private set; }
+    public string? DisplayName { get; private set; }
+    public string? Product { get; private set; }
+    public DateTime? LastSyncedAt { get; private set; }
+    public bool IsDeleted { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+
+    private readonly List<AccountBalance> _balances = [];
+    public IReadOnlyList<AccountBalance> Balances => _balances.AsReadOnly();
+
+    private Account() { }
+
+    public static Account Create(
+        Guid userId,
+        Guid bankConnectionId,
+        string externalId,
+        string currency,
+        string? iban,
+        string? ownerName,
+        string? product,
+        DateTime now)
+    {
+        return new Account
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            BankConnectionId = bankConnectionId,
+            ExternalId = externalId,
+            Currency = currency,
+            Iban = iban,
+            OwnerName = ownerName,
+            Product = product,
+            CreatedAt = now
+        };
+    }
+
+    public void UpdateDisplayName(string displayName, DateTime now)
+    {
+        DisplayName = displayName;
+        UpdatedAt = now;
+    }
+
+    public void UpdateBalances(List<AccountBalance> balances, DateTime now)
+    {
+        _balances.Clear();
+        _balances.AddRange(balances);
+        UpdatedAt = now;
+    }
+
+    public void MarkSynced(DateTime now)
+    {
+        LastSyncedAt = now;
+        UpdatedAt = now;
+    }
+
+    public void SoftDelete(DateTime now)
+    {
+        IsDeleted = true;
+        DeletedAt = now;
+        UpdatedAt = now;
+    }
+}
