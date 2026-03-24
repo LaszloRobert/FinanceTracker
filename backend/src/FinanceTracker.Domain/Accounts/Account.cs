@@ -17,8 +17,7 @@ public sealed class Account : Entity
     public bool IsDeleted { get; private set; }
     public DateTimeOffset? DeletedAt { get; private set; }
 
-    private readonly List<AccountBalance> _balances = [];
-    public IReadOnlyList<AccountBalance> Balances => _balances.AsReadOnly();
+    public List<AccountBalance> Balances { get; private set; } = [];
 
     private Account() { }
 
@@ -54,8 +53,8 @@ public sealed class Account : Entity
 
     public void UpdateBalances(List<AccountBalance> balances, DateTimeOffset now)
     {
-        _balances.Clear();
-        _balances.AddRange(balances);
+        Balances.Clear();
+        Balances.AddRange(balances);
         UpdatedAt = now;
     }
 

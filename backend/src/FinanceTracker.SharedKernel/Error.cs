@@ -17,6 +17,9 @@ public record Error(string Code, string Description, ErrorType Type)
     public static Error Failure(string code, string description) =>
         new(code, description, ErrorType.Failure);
 
+    public static Error Unauthorized(string code, string description) =>
+        new(code, description, ErrorType.Unauthorized);
+
     public static Error Problem(string code, string description) =>
         new(code, description, ErrorType.Problem);
 }
@@ -27,6 +30,7 @@ public enum ErrorType
     Validation,
     NotFound,
     Conflict,
+    Unauthorized,
     Problem
 }
 

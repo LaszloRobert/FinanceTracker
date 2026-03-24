@@ -33,10 +33,9 @@ internal sealed class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.Property(a => a.Product)
             .HasMaxLength(64);
 
-        builder.OwnsMany<AccountBalance>("_balances", balance =>
+        builder.OwnsMany(a => a.Balances, balance =>
         {
             balance.ToJson("balances");
-            balance.OwnsOne(b => b.Amount);
         });
 
         builder.HasOne<User>()

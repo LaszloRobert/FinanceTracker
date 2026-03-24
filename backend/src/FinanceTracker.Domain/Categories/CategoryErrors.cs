@@ -9,4 +9,7 @@ public static class CategoryErrors
 
     public static Error NameAlreadyExists(string name) =>
         Error.Conflict("Categories.NameExists", $"Category with name '{name}' already exists.");
+
+    public static Error CannotDeleteDefault() =>
+        Error.Conflict("Categories.CannotDeleteDefault", "Default categories cannot be deleted.");
 }

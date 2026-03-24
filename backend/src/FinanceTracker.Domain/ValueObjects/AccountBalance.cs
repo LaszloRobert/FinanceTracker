@@ -1,6 +1,12 @@
 namespace FinanceTracker.Domain.ValueObjects;
 
-public sealed record AccountBalance(
-    Money Amount,
-    string BalanceType,
-    DateOnly? ReferenceDate);
+public sealed class AccountBalance
+{
+    public decimal Amount { get; init; }
+
+    public string Currency { get; init; } = default!;
+
+    public string BalanceType { get; init; } = default!;
+
+    public DateOnly? ReferenceDate { get; init; }
+}
