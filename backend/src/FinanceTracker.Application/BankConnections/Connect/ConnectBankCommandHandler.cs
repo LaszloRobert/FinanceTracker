@@ -1,21 +1,24 @@
 using FinanceTracker.Application.Abstractions.BankData;
+using FinanceTracker.Application.Abstractions.BankData.Models;
 using FinanceTracker.Application.Abstractions.Messaging;
 using FinanceTracker.SharedKernel;
 
 namespace FinanceTracker.Application.BankConnections.Connect;
 
 internal sealed class ConnectBankCommandHandler(IBankDataService bankDataService)
-    : ICommandHandler<ConnectBankCommand, string>
+    : ICommandHandler<ConnectBankCommand, ConnectBankResponse>
 {
-    public async Task<Result<string>> Handle(
+    public async Task<Result<ConnectBankResponse>> Handle(
         ConnectBankCommand command,
         CancellationToken cancellationToken)
     {
-        string authLink = await bankDataService.CreateRequisitionAsync(
+        RequisitionResult requisition = await bankDataService.CreateRequisitionAsync(
             command.InstitutionId,
             command.RedirectUrl,
             cancellationToken);
 
-        return authLink;
+        var response = new ConnectBankResponse(requisition.RequisitionId, requisition.Link);
+
+        return response;
     }
 }

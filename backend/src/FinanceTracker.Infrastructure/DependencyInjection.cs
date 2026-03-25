@@ -1,7 +1,9 @@
 using System.Text;
 using FinanceTracker.Application.Abstractions.Authentication;
+using FinanceTracker.Application.Abstractions.BankData;
 using FinanceTracker.Application.Abstractions.Data;
 using FinanceTracker.Infrastructure.Authentication;
+using FinanceTracker.Infrastructure.BankData;
 using FinanceTracker.Infrastructure.Database;
 using FinanceTracker.Infrastructure.DomainEvents;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,6 +22,7 @@ public static class DependencyInjection
     {
         services.AddDatabase(configuration);
         services.AddJwtAuthentication(configuration);
+        services.AddBankData(configuration);
         services.AddServices();
 
         return services;
@@ -77,6 +80,36 @@ public static class DependencyInjection
         services.AddAuthorization();
 
         services.AddHttpContextAccessor();
+
+        return services;
+    }
+
+    private static IServiceCollection AddBankData(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddOptions<GoCardlessOptions>()
+            .BindConfiguration(GoCardlessOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        GoCardlessOptions goCardlessOptions = configuration
+            .GetSection(GoCardlessOptions.SectionName)
+            .Get<GoCardlessOptions>()!;
+
+        services.AddSingleton<GoCardlessTokenCache>();
+
+        services.AddHttpClient<GoCardlessTokenService>(client =>
+        {
+            client.BaseAddress = new Uri(goCardlessOptions.BaseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
+
+        services.AddHttpClient<IBankDataService, GoCardlessBankDataService>(client =>
+        {
+            client.BaseAddress = new Uri(goCardlessOptions.BaseUrl);
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
 
         return services;
     }

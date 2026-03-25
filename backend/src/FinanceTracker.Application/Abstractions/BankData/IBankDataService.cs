@@ -4,11 +4,9 @@ namespace FinanceTracker.Application.Abstractions.BankData;
 
 public interface IBankDataService
 {
-    Task<string> CreateRequisitionAsync(string institutionId, Uri redirectUrl, CancellationToken cancellationToken);
+    Task<RequisitionResult> CreateRequisitionAsync(string institutionId, Uri redirectUrl, CancellationToken cancellationToken);
 
-    Task<RequisitionStatus> GetRequisitionStatusAsync(string requisitionId, CancellationToken cancellationToken);
-
-    Task<List<string>> GetAccountIdsAsync(string requisitionId, CancellationToken cancellationToken);
+    Task<RequisitionDetails> GetRequisitionDetailsAsync(string requisitionId, CancellationToken cancellationToken);
 
     Task<BankAccountDetails> GetAccountDetailsAsync(string accountId, CancellationToken cancellationToken);
 
@@ -17,4 +15,6 @@ public interface IBankDataService
     Task<BankTransactionResult> GetTransactionsAsync(string accountId, DateOnly? dateFrom, DateOnly? dateTo, CancellationToken cancellationToken);
 
     Task<List<BankInstitution>> GetInstitutionsAsync(string countryCode, CancellationToken cancellationToken);
+
+    Task<BankInstitution?> GetInstitutionByIdAsync(string institutionId, CancellationToken cancellationToken);
 }

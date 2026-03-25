@@ -2,6 +2,7 @@ using FinanceTracker.Api.Infrastructure;
 using FinanceTracker.Application.Abstractions.Messaging;
 using FinanceTracker.Application.Transactions.Categorize;
 using FinanceTracker.Application.Transactions.GetAll;
+using FinanceTracker.Application.Transactions.Sync;
 using FinanceTracker.SharedKernel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,35 @@ public sealed class TransactionsController : ControllerBase
         Result<TransactionsPageResponse> result = await handler!.Handle(query, cancellationToken);
 
         return result.Match(Ok, CustomResults.Problem);
+    }
+
+    [HttpPost("{accountId:guid}/sync")]
+    public async Task<IActionResult> Sync(
+        Guid accountId,
+        [FromServices] ICommandHandler<SyncTransactionsCommand, int> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new SyncTransactionsCommand(accountId);
+
+        Result<int> result = await handler.Handle(command, cancellationToken);
+
+        return result.Match(
+            count => Ok(new { syncedCount = count }),
+            CustomResults.Problem);
+    }
+
+    [HttpPost("sync-all")]
+    public async Task<IActionResult> SyncAll(
+        [FromServices] ICommandHandler<SyncAllTransactionsCommand, int> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new SyncAllTransactionsCommand();
+
+        Result<int> result = await handler.Handle(command, cancellationToken);
+
+        return result.Match(
+            count => Ok(new { syncedCount = count }),
+            CustomResults.Problem);
     }
 
     [HttpPut("{id:guid}/category")]

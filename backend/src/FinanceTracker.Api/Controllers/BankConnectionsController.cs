@@ -1,5 +1,6 @@
 using FinanceTracker.Api.Infrastructure;
 using FinanceTracker.Application.Abstractions.Messaging;
+using FinanceTracker.Application.BankConnections.Callback;
 using FinanceTracker.Application.BankConnections.Connect;
 using FinanceTracker.Application.BankConnections.Delete;
 using FinanceTracker.Application.BankConnections.GetAll;
@@ -17,7 +18,7 @@ public sealed class BankConnectionsController : ControllerBase
 {
     [HttpGet("institutions")]
     public async Task<IActionResult> GetInstitutions(
-        [FromQuery] string countryCode,
+        [FromQuery] [System.ComponentModel.DataAnnotations.Required] [System.ComponentModel.DataAnnotations.StringLength(2, MinimumLength = 2)] string countryCode,
         [FromServices] IQueryHandler<GetInstitutionsQuery, List<InstitutionResponse>> handler,
         CancellationToken cancellationToken)
     {
@@ -31,14 +32,29 @@ public sealed class BankConnectionsController : ControllerBase
     [HttpPost("connect")]
     public async Task<IActionResult> Connect(
         [FromBody] ConnectBankRequest request,
-        [FromServices] ICommandHandler<ConnectBankCommand, string> handler,
+        [FromServices] ICommandHandler<ConnectBankCommand, ConnectBankResponse> handler,
         CancellationToken cancellationToken)
     {
         var command = new ConnectBankCommand(request.InstitutionId, request.RedirectUrl);
 
-        Result<string> result = await handler.Handle(command, cancellationToken);
+        Result<ConnectBankResponse> result = await handler.Handle(command, cancellationToken);
 
-        return result.Match(authLink => Ok(new { authLink }), CustomResults.Problem);
+        return result.Match(Ok, CustomResults.Problem);
+    }
+
+    [HttpPost("callback")]
+    public async Task<IActionResult> Callback(
+        [FromBody] BankCallbackRequest request,
+        [FromServices] ICommandHandler<ProcessBankCallbackCommand, Guid> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new ProcessBankCallbackCommand(request.RequisitionId);
+
+        Result<Guid> result = await handler.Handle(command, cancellationToken);
+
+        return result.Match(
+            bankConnectionId => Ok(new { bankConnectionId }),
+            CustomResults.Problem);
     }
 
     [HttpGet]
@@ -68,3 +84,5 @@ public sealed class BankConnectionsController : ControllerBase
 }
 
 public sealed record ConnectBankRequest(string InstitutionId, Uri RedirectUrl);
+
+public sealed record BankCallbackRequest(string RequisitionId);
